@@ -93,4 +93,18 @@ OpenWeatherMap Reverse Geocoding
 Mapbox is preferred here because it is simple, quick, and returns detailed geographical context for coordinates.
 
 
+4 ) Epoch to Human Time Conversion 
+The ISS API provides timestamps in epoch format, which counts seconds since 1 January 1970 UTC.
+For a human-friendly time format, Python’s standard libraries can convert it easily.
+
+Example Conversion
+
+import time
+epoch = 1730655056
+human_time = time.ctime(epoch)
+print(human_time)
+# Output: Tue Nov 01 14:10:56 2025
+
+
+
 
