@@ -6,7 +6,7 @@
 
 ---
 
-## 1️⃣ Webex Messaging API (7%)
+## 1️⃣ Webex Messaging API 
 
 The **Webex Messaging API** allows developers to build bots or applications that interact with Webex rooms through RESTful calls. In the Space Bot project, it is used to:
 - Retrieve a list of Webex rooms a user or bot belongs to.
