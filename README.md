@@ -106,5 +106,13 @@ print(human_time)
 # Output: Tue Nov 01 14:10:56 2025
 
 
+Alternatively:
+
+from datetime import datetime
+readable = datetime.fromtimestamp(epoch).strftime("%a %b %d %H:%M:%S %Y")
+
+This makes the Space Bot’s Webex message understandable by displaying the date and time in normal format.
+
+
 
 
