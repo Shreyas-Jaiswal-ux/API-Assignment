@@ -111,8 +111,72 @@ Alternatively:
 from datetime import datetime
 readable = datetime.fromtimestamp(epoch).strftime("%a %b %d %H:%M:%S %Y")
 
+
+Web Architecture 
+
+The Space Bot operates on a Client–Server web architecture, integrating multiple APIs through RESTful communication.
+Each interaction follows the HTTP request–response cycle with JSON as the data format.
+
+Architecture Flow
+
+                       [User] → [Webex Room] → [Webex API] → [Python Space Bot]
+                                          ↓
+                                [ISS API + Geocoding API]
+                                          ↓
+                              [Webex Room: Bot Response]
+How it Works :
+
+A user sends a command like /5 in Webex.
+
+The Space Bot reads the message and waits for 5 seconds.
+
+It then calls the ISS API to get coordinates.
+
+It uses the Geocoding API to convert coordinates into a readable place.
+
+The bot converts the epoch timestamp to normal time.
+
+Finally, it posts a well-formatted message back to Webex.
+
+Example Message
+
+On Tue Nov 01 14:10:56 2025, the ISS was flying over Bolívar, Venezuela (7.0680°, -61.2094°)
+
+This architecture allows multiple independent APIs to interact smoothly, each handling one task: messaging, location, and geocoding.
+
+
+
+
+The Space Bot follows a simplified Model–View–Controller (MVC) structure for clarity and reusability.
+
+Component	Description
+Model	Manages data retrieval and structure — API responses from ISS and Geocoding.
+View	Displays the formatted output (time, coordinates, and location) in Webex.
+Controller	Handles logic: monitors room messages, triggers API calls, manages delay and responses.
+
+Example Flow
+User types /5
+↓
+Controller reads command and waits 5s
+↓
+Model fetches ISS and location data
+↓
+View posts formatted message to Webex
+
+
+                          
+
+
+
 This makes the Space Bot’s Webex message understandable by displaying the date and time in normal format.
 
+Benefits of MVC
+
+Easy to debug and extend.
+
+Keeps code modular and readable.
+
+Makes it simple to add extra features (e.g., next SpaceX launch data).
 
 
 
