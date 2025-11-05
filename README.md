@@ -167,8 +167,9 @@ Improves debugging and testing by separating data, logic, and display
 
 🔗 References
 
-Webex Developer API Docs
-Where the ISS At API
-Mapbox Geocoding API
-Python Time Library
-Python Datetime Library
+- [Webex Developer API Docs](https://developer.webex.com/docs/api/v1)
+- [Where the ISS At API](https://wheretheiss.at/w/developer)
+- [Mapbox Geocoding API](https://docs.mapbox.com/api/search/geocoding/)
+- [Python Time Library](https://docs.python.org/3/library/time.html)
+- [Python Datetime Library](https://docs.python.org/3/library/datetime.html)
+
