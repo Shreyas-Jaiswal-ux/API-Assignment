@@ -1,175 +1,214 @@
-# 🛰️ Space Bot — API Investigation
-
-### Module: Web Technology (5FTC2167)
-### Assignment 1 – Space Bot  
-### Author: Shreyas Jaiswal  
+# Space Bot — API Investigation  
+Module: Web Technology (5FTC2167)  
+Assignment 1 – Space Bot  
+Author: Shreyas Jaiswal  
 
 ---
 
-## 1️⃣ Webex Messaging API
+## 1. Introduction  
+This project demonstrates how multiple web services can be integrated into one Python-based automation tool.  
+The Space Bot listens to a Webex messaging room, waits for commands such as `/5`, retrieves the live location of the International Space Station (ISS), reverse-geocodes the coordinates into a readable place, and posts the final message back into the Webex room.  
+This provides practical experience with REST APIs, JSON handling, API authentication, and simple bot automation.
 
-The **Webex Messaging API** allows developers to create bots and automation tools that can interact with Webex rooms using RESTful endpoints.  
-In the Space Bot project, it is used to:
-- Retrieve a list of Webex rooms a user or bot is part of.  
-- Continuously monitor a selected room for new messages.  
-- Post formatted ISS location updates back to that room.
+---
 
-### 🔗 Key Endpoints
+## 2. Webex Messaging API  
+The Webex Messaging API allows a script or application to interact with Webex rooms.  
+This bot uses the following features:
+
+• List all rooms the user or bot is part of  
+• Read the latest incoming message in a selected room  
+• Post a reply message containing ISS data  
+
+### Key Endpoints Used
 
 | Purpose | Method | Endpoint | Description |
-|----------|---------|-----------|--------------|
-| List Rooms | `GET` | `https://webexapis.com/v1/rooms` | Returns all rooms accessible by the user or bot. |
-| Get Latest Message | `GET` | `https://webexapis.com/v1/messages?roomId={roomId}&max=1` | Fetches the most recent message from a selected room. |
-| Post Message | `POST` | `https://webexapis.com/v1/messages` | Sends the bot’s formatted ISS location message. |
+|--------|--------|----------|-------------|
+| List Rooms | GET | https://webexapis.com/v1/rooms | Retrieves all Webex rooms available to the user |
+| Get Latest Message | GET | https://webexapis.com/v1/messages | Reads recent messages in a specific room |
+| Post Message | POST | https://webexapis.com/v1/messages | Sends a formatted message into a Webex room |
 
-**Authentication Header**
+### Authentication  
+All Webex requests require this header:
 
+```
 Authorization: Bearer <ACCESS_TOKEN>
 Content-Type: application/json
-
-
-All requests require a valid **access token**, which ensures that only authorized users or bots can access the Webex environment.  
-Tokens should never be exposed publicly for security reasons.
+```
 
 ---
 
-## 2️⃣ ISS Current Location API
+## 3. ISS Current Location API  
+The ISS API returns the real-time latitude, longitude, and timestamp of the International Space Station.
 
-The **ISS Current Location API** provides real-time latitude and longitude coordinates of the International Space Station (ISS).
-
-**Endpoint:**
+Endpoint:  
 https://api.wheretheiss.at/v1/satellites/25544
 
-**Example Response:**
+### Example Response
 ```json
 {
   "name": "iss",
   "id": 25544,
-  "latitude": 51.6041,
-  "longitude": -1.0328,
-  "altitude": 414.6,
-  "velocity": 27600,
-  "timestamp": 1730655056
+  "latitude": -51.5668,
+  "longitude": 22.2114,
+  "timestamp": 1730893245
 }
 ```
-The Space Bot extracts the following fields:
-Latitude & Longitude: identify the ISS position on Earth.
-Timestamp: represents the exact time the data was captured (in epoch format).
-These values are then passed to the Geocoding API to find the corresponding location name on Earth.
 
-3️⃣ Geocoding API
+The bot extracts the following fields:  
+• latitude  
+• longitude  
+• timestamp (UNIX epoch, later converted)
 
-The Geocoding API converts GPS coordinates into human-readable addresses (e.g., city, region, or country).
-In this project, Mapbox Geocoding API is used due to its free developer tier and precise location data.
+---
 
-Endpoint Format
-https://api.mapbox.com/geocoding/v5/mapbox.places/{longitude},{latitude}.json?access_token=<YOUR_KEY>
+## 4. Geocoding API (Mapbox)  
+Mapbox converts raw GPS coordinates into readable human locations such as a city, region, or country.
 
-{
-  "features": [
-    {
-      "place_name": "Bolívar, Venezuela, Bolivarian Republic of"
-    }
-  ]
-}
+Endpoint:  
+https://api.mapbox.com/geocoding/v5/mapbox.places/{lon},{lat}.json?access_token=YOUR_TOKEN
 
-Extracted Fields
+Typical returned values include:  
+• place_name (full readable location string)  
+• context fields (country, region, city)  
 
-place_name: readable description of the location.
+If no location can be identified, the script returns "Unknown location".
 
-context: contains nested data such as city, region, and country.
+---
 
-Alternative Providers
+## 5. Example Output  
+After collecting ISS coordinates and converting the timestamp and location, a final message looks like:
 
-OpenCage Geocoder
+```
+On Sat Nov 08 09:40:45 2025, the ISS was flying over Brazil (-51.5668°, 22.2114°)
+```
 
-OpenWeatherMap Reverse Geocoding
+If the location is not detected:
 
-Why Mapbox?
-It is developer-friendly, stable, and returns consistent JSON responses that are easy to parse with Python’s requests library.
+```
+Unknown location
+```
 
-4️⃣ Epoch → Human Time Conversion
+---
 
-The ISS API provides timestamps in epoch (UNIX) format, which represents seconds since 1 January 1970 (UTC).
-To convert it into a human-readable date and time:
+## 6. Web Architecture (Full System Explanation)  
+The Space Bot follows a simple event-driven architecture where it continuously monitors a Webex room and reacts to user input.
 
-import time
-epoch = 1730655056
-print(time.ctime(epoch))
-# Output: Tue Nov 04 14:10:56 2025
+### Components  
+• Webex client (where the user types commands)  
+• Python bot script (main logic controller)  
+• External APIs (Webex REST API, ISS Location API, Mapbox Geocoding API)
 
-Or using the datetime module:
+### End-to-end Process  
+1. The bot authenticates to Webex using a token.  
+2. The bot lists all available rooms.  
+3. The user selects a room to monitor.  
+4. The bot polls the room for new messages.  
+5. When a command such as `/5` appears, the bot waits 5 seconds.  
+6. The bot fetches the ISS position using the ISS API.  
+7. The bot reverse-geocodes the coordinates using Mapbox.  
+8. The bot formats the final message.  
+9. The bot posts the message into the Webex room.
 
-from datetime import datetime
-epoch = 1730655056
-print(datetime.fromtimestamp(epoch).strftime("%a %b %d %H:%M:%S %Y"))
+### Data Handling  
+• JSON is used for all incoming and outgoing API data.  
+• HTTPS is used for all network communication.  
+• Epoch timestamps are converted into human-readable strings using Python.
 
-This makes the output easily understandable for users when displayed in the Webex room.
+---
 
-5️⃣ Web Architecture
+## 7. MVC Pattern (Applied to This Script)  
+Although this is a small console program, its structure aligns with the Model-View-Controller pattern.
 
-The Space Bot follows a client–server architecture where the bot acts as an intermediary between multiple web services.
-Communication occurs through REST APIs using HTTP requests and JSON responses.
+### Model  
+Handles data retrieval and preparation:  
+• ISS API (returns lat, lon, epoch)  
+• Mapbox API (returns place_name)  
+• Webex API message and room data  
 
-🧭 Architecture Flow
+### View  
+Handles the formatting of human-readable output:  
+• Constructs the text message that will be posted into the Webex room  
+• Templates the final ISS message  
 
-                       [User] → [Webex Room] → [Webex API] → [Python Space Bot]
-                                          ↓
-                                 [ISS + Geocoding APIs]
-                                          ↓
-                              [Webex Room: Bot Response]
-🔄 How It Works
+### Controller  
+Controls program flow:  
+• Authenticates the user  
+• Selects the room  
+• Detects `/seconds` commands  
+• Calls Model functions (ISS + geocoding)  
+• Sends the result using View formatting  
+• Posts the final response to Webex  
 
-The user sends a command like /5 in the Webex room.
-The Space Bot detects this command and waits 5 seconds.
-It retrieves the ISS coordinates via the ISS API.
-It converts the coordinates to a readable address using the Geocoding API.
-It converts the epoch timestamp to a human-readable format.
-It posts a formatted response message back to the Webex room.
+This separation keeps data logic, formatting, and flow control organised and easier to extend.
 
-      Example Output
-      On Tue Nov 04 14:10:56 2025, the ISS was flying over Bolívar, Venezuela (7.0680°, -61.2094°)
+---
 
-6️⃣ MVC Design Pattern - The Space Bot follows the Model–View–Controller (MVC) design pattern to ensure clean structure and maintainability.
+## 8. Security and Token Management  
+To ensure safe handling of tokens and API keys:
 
-| **Component** | **Role** |
-|----------------|-----------|
-| **Model** | Handles all data operations — fetching API responses, storing coordinates, timestamps, and locations. |
-| **View** | Displays the output message sent to Webex (formatted with time and location). |
-| **Controller** | Processes logic: detects `/seconds` commands, calls APIs, handles delays, and posts the final message. |
+• Sensitive tokens should not be hard-coded or committed to GitHub.  
+• Environment variables should be used (e.g., `WEBEX_TOKEN`, `MAPBOX_TOKEN`).  
+• Tokens must never be printed in logs or error messages.  
+• Always use HTTPS endpoints and include timeouts in API calls.  
+• Rate limits should be respected, and backoff should be used if needed.  
+• If a token is exposed accidentally, it must be rotated immediately.
 
-      
-This architecture demonstrates smooth API integration, allowing real-time global tracking of the ISS.
+### Security Justification  
+For safety, the bot loads tokens securely and avoids printing or storing them in logs. All external requests use HTTPS with timeouts, and errors are handled without exposing any credentials. This prevents accidental credential leakage and keeps the bot compliant with good API security practices.
 
-Example Workflow :
-User → Controller → Model → View → Webex Message
+---
 
-The Controller interprets /5 and initiates logic.
-The Model retrieves and processes ISS + Geocoding data.
-The View formats and displays the final message to the user.
+## 9. Python Source Code  
+(Place the full Python script here exactly as used in the project.)
 
-Advantages :
+---
 
-Promotes modular, organized, and reusable code.
-Makes future feature additions (like SpaceX launch info) easier.
-Improves debugging and testing by separating data, logic, and display 
+## 10. Advantages of This Integration  
+• Demonstrates use of multiple REST APIs in one script  
+• Shows how JSON parsing and time conversion works  
+• Demonstrates a practical event-driven automation flow  
+• Code is structured using ideas from MVC  
+• Easy to extend with additional features in the future  
 
-##  Summary
+---
 
-| **Section** | **Function** | **Key Outcome** |
-|--------------|---------------|------------------|
-| **Webex Messaging API** | Communication layer | Enables bot–user interaction in Webex. |
-| **ISS Current Location API** | Data source | Provides live ISS coordinates and time. |
-| **Geocoding API** | Data translation | Converts coordinates to a readable location. |
-| **Epoch Conversion** | Readability | Displays clear, human-friendly timestamps. |
-| **Web Architecture** | Structure | Integrates multiple services through REST APIs. |
-| **MVC Pattern** | Code organization | Keeps the project modular and maintainable. |
+## 11. Summary Table  
 
-🔗 References
+| Section | Function | Outcome |
+|--------|----------|---------|
+| Webex Messaging API | Communication | Read and send messages |
+| ISS API | Position tracking | Real-time ISS latitude/longitude |
+| Geocoding API | Location conversion | Converts coordinates into human-readable places |
+| MVC Pattern | Structure | Organises data, logic, and presentation |
+| Automation | Bot behaviour | Responds to user commands in real time |
 
-- [Webex Developer API Docs](https://developer.webex.com/docs/api/v1)
-- [Where the ISS At API](https://wheretheiss.at/w/developer)
-- [Mapbox Geocoding API](https://docs.mapbox.com/api/search/geocoding/)
-- [Python Time Library](https://docs.python.org/3/library/time.html)
-- [Python Datetime Library](https://docs.python.org/3/library/datetime.html)
+---
+
+## 12. What I Learned  
+• How to call REST APIs from Python using the `requests` library.  
+• How to read JSON and extract only the fields required.  
+• How UNIX epoch timestamps work and how to convert them to normal date-time format.  
+• How to design a small script using ideas from MVC by separating data, logic, and formatting.  
+• Why API keys and tokens must be treated as secrets and must not be hard-coded.
+
+---
+
+## 13. Screenshots  
+(Insert screenshots of terminal output and Webex bot responses here.)
+
+Example placeholders:
+
+```
+![Bot Running](images/terminal.png)
+![Webex Response](images/response.png)
+```
+
+---
+
+## 14. References  
+• Webex Developer API Documentation  
+• WhereTheISS.at API  
+• Mapbox Geocoding API  
+• Python Requests Library  
 
